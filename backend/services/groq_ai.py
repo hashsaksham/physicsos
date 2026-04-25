@@ -9,7 +9,7 @@ GROQ_MODEL = "llama-3.3-70b-versatile"
 _FALLBACK = {
     "action_type": "INFORMATION",
     "parameters": {},
-    "user_message": "I couldn't process that request. Please try again.",
+    "user_message": "AI service is currently unavailable. Please check your API key.",
 }
 
 _SYSTEM_TEMPLATE = """\
@@ -49,11 +49,7 @@ async def process_chat_message(
 ) -> dict:
     api_key = os.environ.get("GROQ_API_KEY", "")
     if not api_key:
-        return {
-            "action_type": "INFORMATION",
-            "parameters": {},
-            "user_message": "AI chat is not configured — GROQ_API_KEY is missing.",
-        }
+        return _FALLBACK.copy()
 
     rooms = json.loads(rooms_json) if rooms_json else []
     room = next((r for r in rooms if r["id"] == room_id), None)

@@ -49,6 +49,23 @@ async def get_project(project_id: str, db: AsyncSession = Depends(get_db)):
     }
 
 
+@router.get("/{project_id}/status")
+async def get_project_status(project_id: str, db: AsyncSession = Depends(get_db)):
+    project = await db.get(Project, project_id)
+    if project is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    error = None
+    if project.status == "failed" and project.rooms_json:
+        try:
+            parsed = json.loads(project.rooms_json)
+            error = parsed.get("error") if isinstance(parsed, dict) else None
+        except (json.JSONDecodeError, AttributeError):
+            pass
+
+    return {"status": project.status, "error": error}
+
+
 @router.patch("/{project_id}/rooms/{room_id}")
 async def update_room(
     project_id: str,

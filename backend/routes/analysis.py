@@ -65,18 +65,22 @@ async def start_wifi_analysis(
 
 @router.get("/{project_id}/analysis/wifi/result")
 async def get_wifi_result(project_id: str, db: AsyncSession = Depends(get_db)):
-    stmt = (
-        select(AnalysisResult)
-        .where(AnalysisResult.project_id == project_id)
-        .where(AnalysisResult.analysis_type == "wifi")
-        .order_by(AnalysisResult.created_at.desc())
-        .limit(1)
-    )
-    row = (await db.execute(stmt)).scalar_one_or_none()
-    if row is None:
-        raise HTTPException(status_code=404, detail="No WiFi analysis result found")
-
-    return {"result": json.loads(row.result_json), "heatmap_url": _heatmap_url(row.heatmap_path)}
+    try:
+        stmt = (
+            select(AnalysisResult)
+            .where(AnalysisResult.project_id == project_id)
+            .where(AnalysisResult.analysis_type == "wifi")
+            .order_by(AnalysisResult.created_at.desc())
+            .limit(1)
+        )
+        row = (await db.execute(stmt)).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="No WiFi analysis result found")
+        return {"result": json.loads(row.result_json), "heatmap_url": _heatmap_url(row.heatmap_path)}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        return {"result": {"error": str(exc)}, "heatmap_url": None}
 
 
 class AcousticsRequest(BaseModel):
@@ -107,18 +111,22 @@ async def start_acoustic_analysis(
 
 @router.get("/{project_id}/analysis/acoustics/result")
 async def get_acoustics_result(project_id: str, db: AsyncSession = Depends(get_db)):
-    stmt = (
-        select(AnalysisResult)
-        .where(AnalysisResult.project_id == project_id)
-        .where(AnalysisResult.analysis_type == "acoustics")
-        .order_by(AnalysisResult.created_at.desc())
-        .limit(1)
-    )
-    row = (await db.execute(stmt)).scalar_one_or_none()
-    if row is None:
-        raise HTTPException(status_code=404, detail="No acoustics analysis result found")
-
-    return {"result": json.loads(row.result_json), "heatmap_url": None}
+    try:
+        stmt = (
+            select(AnalysisResult)
+            .where(AnalysisResult.project_id == project_id)
+            .where(AnalysisResult.analysis_type == "acoustics")
+            .order_by(AnalysisResult.created_at.desc())
+            .limit(1)
+        )
+        row = (await db.execute(stmt)).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="No acoustics analysis result found")
+        return {"result": json.loads(row.result_json), "heatmap_url": None}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        return {"result": {"error": str(exc)}, "heatmap_url": None}
 
 
 class ThermalRequest(BaseModel):
@@ -151,15 +159,19 @@ async def start_thermal_analysis(
 
 @router.get("/{project_id}/analysis/thermal/result")
 async def get_thermal_result(project_id: str, db: AsyncSession = Depends(get_db)):
-    stmt = (
-        select(AnalysisResult)
-        .where(AnalysisResult.project_id == project_id)
-        .where(AnalysisResult.analysis_type == "thermal")
-        .order_by(AnalysisResult.created_at.desc())
-        .limit(1)
-    )
-    row = (await db.execute(stmt)).scalar_one_or_none()
-    if row is None:
-        raise HTTPException(status_code=404, detail="No thermal analysis result found")
-
-    return {"result": json.loads(row.result_json), "heatmap_url": _heatmap_url(row.heatmap_path)}
+    try:
+        stmt = (
+            select(AnalysisResult)
+            .where(AnalysisResult.project_id == project_id)
+            .where(AnalysisResult.analysis_type == "thermal")
+            .order_by(AnalysisResult.created_at.desc())
+            .limit(1)
+        )
+        row = (await db.execute(stmt)).scalar_one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="No thermal analysis result found")
+        return {"result": json.loads(row.result_json), "heatmap_url": _heatmap_url(row.heatmap_path)}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        return {"result": {"error": str(exc)}, "heatmap_url": None}

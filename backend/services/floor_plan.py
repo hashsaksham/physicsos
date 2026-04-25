@@ -60,7 +60,8 @@ async def process_floor_plan(file_path: str, project_id: str) -> None:
             project.status = "ready"
             await session.commit()
 
-        except Exception:
+        except Exception as exc:
             project.status = "failed"
+            project.rooms_json = json.dumps({"error": str(exc)})
             await session.commit()
             raise

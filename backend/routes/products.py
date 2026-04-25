@@ -78,12 +78,15 @@ async def add_product(
     db: AsyncSession = Depends(get_db),
 ):
     parser = _AmazonParser()
+    scrape_failed = False
     try:
         async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
             resp = await client.get(body.amazon_url, headers=_BROWSER_HEADERS)
         parser.feed(resp.text)
+        if not parser.title:
+            scrape_failed = True
     except Exception:
-        pass  # fall through to defaults
+        scrape_failed = True
 
     product = Product(
         project_id=project_id,
@@ -94,7 +97,11 @@ async def add_product(
     db.add(product)
     await db.commit()
     await db.refresh(product)
-    return _product_dict(product)
+
+    response = _product_dict(product)
+    if scrape_failed:
+        response["error"] = "Could not fetch product details. Try a different link."
+    return response
 
 
 @router.patch("/{project_id}/products/{product_id}")
