@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+python-multipart
+sqlalchemy
+greenlet
+aiosqlite
+opencv-python-headless
+numpy
+scipy
+matplotlib
+pyroomacoustics
+shapely
+trimesh
+httpx
+python-dotenv
+pillow
+requests
