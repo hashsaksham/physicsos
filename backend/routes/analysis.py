@@ -1,6 +1,8 @@
 import json
+import os
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +14,21 @@ from services.thermal import run_thermal_analysis
 from services.wifi import run_wifi_analysis
 
 router = APIRouter(prefix="/api/projects", tags=["analysis"])
+uploads_router = APIRouter(tags=["uploads"])
+
+
+@uploads_router.get("/api/uploads/{filename}")
+async def serve_upload(filename: str):
+    path = f"uploads/{filename}"
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail=f"File '{filename}' not found")
+    return FileResponse(path)
+
+
+def _heatmap_url(heatmap_path: str | None) -> str | None:
+    if not heatmap_path:
+        return None
+    return f"/api/{heatmap_path}"
 
 
 class WifiRequest(BaseModel):
@@ -59,7 +76,7 @@ async def get_wifi_result(project_id: str, db: AsyncSession = Depends(get_db)):
     if row is None:
         raise HTTPException(status_code=404, detail="No WiFi analysis result found")
 
-    return json.loads(row.result_json)
+    return {"result": json.loads(row.result_json), "heatmap_url": _heatmap_url(row.heatmap_path)}
 
 
 class AcousticsRequest(BaseModel):
@@ -101,7 +118,7 @@ async def get_acoustics_result(project_id: str, db: AsyncSession = Depends(get_d
     if row is None:
         raise HTTPException(status_code=404, detail="No acoustics analysis result found")
 
-    return json.loads(row.result_json)
+    return {"result": json.loads(row.result_json), "heatmap_url": None}
 
 
 class ThermalRequest(BaseModel):
@@ -145,4 +162,4 @@ async def get_thermal_result(project_id: str, db: AsyncSession = Depends(get_db)
     if row is None:
         raise HTTPException(status_code=404, detail="No thermal analysis result found")
 
-    return json.loads(row.result_json)
+    return {"result": json.loads(row.result_json), "heatmap_url": _heatmap_url(row.heatmap_path)}

@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 
 from database import init_db
 from routes import analysis, chat, products, projects
+from routes.analysis import uploads_router
 
 
 @asynccontextmanager
@@ -31,6 +32,7 @@ app.add_middleware(
 
 app.include_router(projects.router)
 app.include_router(analysis.router)
+app.include_router(uploads_router)
 app.include_router(chat.router)
 app.include_router(products.router)
 
@@ -39,10 +41,3 @@ app.include_router(products.router)
 async def health():
     return {"status": "ok"}
 
-
-@app.get("/api/uploads/{filename}")
-async def serve_upload(filename: str):
-    path = f"uploads/{filename}"
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(path)
